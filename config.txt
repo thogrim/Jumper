@@ -1,0 +1,5 @@
+#Configuration file for Jumper application
+#Initial Window's size(WIDTH HEIGHT)
+600 600
+#Gameplay Window's size(WIDTH HEIGHT)
+1000 600
