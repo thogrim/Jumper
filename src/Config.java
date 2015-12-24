@@ -21,6 +21,11 @@ public class Config {
 	public static final int NUMBER_OF_PROFILES = 6;
 	
 	/**
+	 * Number of lifes that player has at the start of the game
+	 */
+	public static final int NUMBER_OF_PLAYER_LIFES = 10;
+	
+	/**
 	 * Path to folder containing level data
 	 */
 	public static final String LEVELS_PATH = "res/levels";

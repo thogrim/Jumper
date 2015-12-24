@@ -57,14 +57,14 @@ public class World implements Runnable{
 	Gameplay gamePanel_;
 	
 	/**
-	 * world's gravity in pixels per second^2
-	 */
-	//public static float gravity_;
-	
-	/**
 	 * Player's character
 	 */
 	private Player player_;
+	
+	/**
+	 * List of player spawn positions(in tiles)
+	 */
+	private int[][] playerSpawnPositions_;
 	
 	/**
 	 * List of platforms
@@ -77,6 +77,16 @@ public class World implements Runnable{
 	private ArrayList<ArrayList<Bonus>> bonuses_;
 	
 	/**
+	 * Number of lifes that player has left
+	 */
+	private int playerLifes_;
+	
+	/**
+	 * Number of alive platforms
+	 */
+	private int alivePlatforms_;
+	
+	/**
 	 * Current part of level
 	 */
 	private int currentPart_;
@@ -86,6 +96,10 @@ public class World implements Runnable{
 	 */
 	private boolean paused_;
 	
+	/**
+	 * 
+	 */
+	private boolean completed_;
 	
 	/**
 	 * 
@@ -95,10 +109,14 @@ public class World implements Runnable{
 	public World(Gameplay game, String levelName){
 		gamePanel_ = game;
 		paused_ = true;
+		completed_ = false;
+		playerSpawnPositions_ = new int [NUMBER_OF_LEVEL_PARTS][2];
 		platforms_ = new ArrayList<>(NUMBER_OF_LEVEL_PARTS);
 		bonuses_ = new ArrayList<>(NUMBER_OF_LEVEL_PARTS);
-		//gravity_ = 5.f;
+		playerLifes_ = Config.NUMBER_OF_PLAYER_LIFES;
 		readLevel(levelName);
+		gamePanel_.updatePlatformsLabel(alivePlatforms_, platforms_.get(0).size());
+		gamePanel_.updatePlayerLifesLabel(playerLifes_);
 		setKeyBindings();
 	}
 
@@ -154,7 +172,8 @@ public class World implements Runnable{
 						int pixel = levelImg.getRGB(i,j);
 						switch(pixel){
 						case PLAYER_PIXEL_COLOR:
-							player_ = new Player(i,j,1500.f);
+							playerSpawnPositions_[levelPart][0] = i;
+							playerSpawnPositions_[levelPart][1] = j%worldHeight;
 							break;
 						case PLATFORM_PIXEL_COLOR:
 							levelPartPlatforms.add(new Platform(i,j%worldHeight));
@@ -168,7 +187,8 @@ public class World implements Runnable{
 				platforms_.add(levelPartPlatforms);
 				bonuses_.add(levelPartBonuses);
 			}
-			
+			alivePlatforms_ = platforms_.get(0).size();
+			player_ = new Player(playerSpawnPositions_[0][0],playerSpawnPositions_[0][1],1500.f);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -184,6 +204,9 @@ public class World implements Runnable{
 		}
 	}
 
+	public boolean completed(){
+		return completed_;
+	}
 	
 	public synchronized boolean paused(){
 		return paused_;
@@ -212,14 +235,21 @@ public class World implements Runnable{
 		}
 	}
 	
+	/**
+	 * Handles player collisions with objects
+	 */
 	private void resolveCollisions(){
 		//checking collision with platforms
 		for(Platform platform : platforms_.get(currentPart_)){
+			//skip dead platforms
+			if(!platform.isAlive())
+				continue;
 			if(player_.intersects(platform))
 				player_.onCollsionWithPlatform(platform);
 		}
 		//checking if player is standing on platform
-		player_.checkForStanding(platforms_.get(currentPart_));
+		//player_.checkForStanding(platforms_.get(currentPart_));
+		resolvePlatformsState();
 		//checking collision with bonuses
 		for(Bonus bonus : bonuses_.get(currentPart_)){
 			if(!bonus.collected()){
@@ -230,12 +260,50 @@ public class World implements Runnable{
 			}
 		}
 		//world collision
-		if(player_.y > WORLD_SIZE.height)
-			player_.y = 0;
+		if(player_.y > WORLD_SIZE.height){
+			player_.respawn(playerSpawnPositions_[currentPart_][0],playerSpawnPositions_[currentPart_][1]);
+			for(Platform platform : platforms_.get(currentPart_))
+				platform.reset();
+			alivePlatforms_ = platforms_.get(currentPart_).size();
+			--playerLifes_;
+			gamePanel_.updatePlayerLifesLabel(playerLifes_);
+			gamePanel_.updatePlatformsLabel(alivePlatforms_, alivePlatforms_);
+		}
+		else if(player_.x + player_.width > World.WORLD_SIZE.width)
+			player_.x = World.WORLD_SIZE.width - player_.width;
+		else if(player_.x < 0)
+			player_.x = 0;
+	}
+	
+	/**
+	 * Changes platforms state
+	 */
+	private void resolvePlatformsState(){
+		//temporarily set player falling state to true
+		player_.setFalling(true);
+		for(Platform platform: platforms_.get(currentPart_)){
+			//skip dead platforms
+			if(!platform.isAlive())
+				continue;
+			//if player is standing on platform
+			if(player_.x+player_.width > platform.x && player_.x < platform.x + platform.width && player_.y + player_.height == platform.y){
+				player_.setFalling(false);
+				platform.stepOn();
+			}
+			//else if player is not standing on platform
+			else{
+				//if player was standing on this platform, destroy it 
+				if(platform.steppedOn()){
+					platform.destroy();
+					--alivePlatforms_;
+					gamePanel_.updatePlatformsLabel(alivePlatforms_, platforms_.get(currentPart_).size());
+				}
+			}
+		}
 	}
 	
 	public void run() {
-		while(true){
+		while(!completed_){
 			waitIfPaused();
 			try {
 				Thread.sleep(UPDATE_DELTA_TIME);
@@ -246,9 +314,24 @@ public class World implements Runnable{
 			synchronized (this){
 				player_.move();
 				resolveCollisions();
+				if(alivePlatforms_==0){
+					if(++currentPart_ == NUMBER_OF_LEVEL_PARTS){
+						--currentPart_;
+						completed_ = true;
+						gamePanel_.onLevelComplete();
+					}
+					else{
+						alivePlatforms_ = platforms_.get(currentPart_).size();
+						gamePanel_.updatePlatformsLabel(alivePlatforms_, alivePlatforms_);
+						player_.respawn(playerSpawnPositions_[currentPart_][0], playerSpawnPositions_[currentPart_][1]);
+					}
+				}
+				else if(playerLifes_ == 0){
+					completed_ = true;
+					gamePanel_.onPlayerDeath();
+				}
 				gamePanel_.repaint();
 			}
-			
 		}
 	}
 }

@@ -56,6 +56,7 @@ public abstract class GameObject extends Rectangle2D.Float{
 	 * @param g Graphics context
 	 */
 	public void draw(Graphics g){
-		g.drawImage(texture_, (int)getX(), (int)getY() ,texture_.getWidth(), texture_.getHeight(), null);
+		if(texture_!=null)
+			g.drawImage(texture_, (int)getX(), (int)getY() ,texture_.getWidth(), texture_.getHeight(), null);
 	}
 }

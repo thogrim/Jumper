@@ -16,17 +16,17 @@ public class Player extends GameObject{
 	/**
 	 * Texture displayed when player is not moving in X axis
 	 */
-	BufferedImage standTexture_;
+	private BufferedImage standTexture_;
 	
 	/**
 	 * Texture displayed when player is moving right
 	 */
-	BufferedImage moveRightTexture_;
+	private BufferedImage moveRightTexture_;
 	
 	/**
 	 * Texture displayed when player is moving left
 	 */
-	BufferedImage moveLeftTexture_;
+	private BufferedImage moveLeftTexture_;
 	
 	/**
 	 * Simple enum that indicates player's moving state in X axis
@@ -57,7 +57,7 @@ public class Player extends GameObject{
 	private int mstate_;
 	
 	/**
-	 * Indicates if player is not standing on platform
+	 * Indicates if player is falling down
 	 */
 	private boolean falling_;
 	
@@ -103,6 +103,20 @@ public class Player extends GameObject{
 		velocityY_ = 0.f;
 		
 		//mstate_ =0;
+	}
+	
+	/**
+	 * Resets player position
+	 * 
+	 * @param xTilePos X position in tiles
+	 * @param yTilePos Y position in tiles
+	 */
+	public void respawn(int xTilePos, int yTilePos){
+		this.x = xTilePos*World.TILE_SIZE;
+		this.y = yTilePos*World.TILE_SIZE;
+		velocityY_ = 0.f;
+		state_ = PlayerState.STANDING;
+		falling_ = false;
 	}
 	
 	public void startMovingRight(){
@@ -151,6 +165,15 @@ public class Player extends GameObject{
 		}
 	}
 	
+	/**
+	 * Sets player's falling state
+	 * 
+	 * @param falling player's falling state
+	 */
+	public void setFalling(boolean falling){
+		falling_ = falling;
+	}
+	
 	public void jump(){
 		if(!falling_){
 			velocityY_ = -800.f;
@@ -185,17 +208,21 @@ public class Player extends GameObject{
 	}
 
 	public void onCollsionWithPlatform(Platform platform) {
+		//if player collided from left or right
 		if(oldY_+this.height > platform.y && oldY_ < platform.y + platform.height){
 			if(state_ == PlayerState.MOVING_RIGHT)
 				this.x = platform.x - this.width;
 			else if(state_ == PlayerState.MOVING_LEFT)
 				this.x = platform.x + platform.width;
 		}
+		//if player collided from up or down
 		else if(oldX_+this.width> platform.x && oldX_ < platform.x + platform.width){
+			//if player is moving up
 			if(velocityY_ < 0.f){
 				this.y = platform.y + platform.height;
 				velocityY_ = 0.f;
 			}
+			//else if player is falling down
 			else{
 				this.y = platform.y - this.height;
 				velocityY_ = 0.f;
@@ -204,19 +231,26 @@ public class Player extends GameObject{
 		}
 	}
 
-	public void checkForStanding(ArrayList<Platform> platforms) {
-		if(falling_)
-			return;
-		//boolean standingOnPlatform = false;
-		falling_ = true;
-		for(Platform platform : platforms){
-			if(this.x+this.width > platform.x && this.x < platform.x + platform.width && this.y + this.height == platform.y){
-				//platform.onPlayerStand();
-				falling_ = false;
-			}
-//			else{
-//				
+//	public void checkForStanding(ArrayList<Platform> platforms) {
+//		//if(falling_)
+//		//	return;
+//		falling_ = true;
+//		for(Platform platform : platforms){
+//			//skip dead platforms
+//			if(!platform.isAlive())
+//				continue;
+//			//if player is standing on this platform
+//			if(this.x+this.width > platform.x && this.x < platform.x + platform.width && this.y + this.height == platform.y){
+//				falling_ = false;
+//				platform.stepOn();
 //			}
-		}
-	}
+//			//else if player is not standing on this platform
+//			else{
+//				//if player was standing on this platform, destroy it 
+//				if(platform.steppedOn())
+//					platform.destroy();
+//			}
+//		}
+//	}
+
 }
