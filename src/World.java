@@ -29,20 +29,20 @@ public class World implements Runnable{
 	/**
 	 * Number of parts that level has
 	 */
-	private static final int NUMBER_OF_LEVEL_PARTS = 2;
+	private static final int NUMBER_OF_LEVEL_PARTS = 5;
 	
 	/**
-	 * Value of pixel color that corresponds to the player's position
+	 * Value of pixel color that corresponds to the player
 	 */
 	private static final int PLAYER_PIXEL_COLOR = 0xff00ff00;
 	
 	/**
-	 * Value of pixel color that corresponds to the platform's position
+	 * Value of pixel color that corresponds to the platform
 	 */
 	private static final int PLATFORM_PIXEL_COLOR = 0xffff0000;
 	
 	/**
-	 * Value of pixel color that corresponds to the bonus' position
+	 * Value of pixel color that corresponds to the bonus
 	 */
 	private static final int BONUS_PIXEL_COLOR = 0xffffff00;
 	

@@ -2,9 +2,11 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 
 /**
@@ -25,7 +27,7 @@ public class ChooseProfile extends GameState{
 		super(jumper);
 		setSize(new Dimension(200,300));
 		setVisible(true);
-		GridLayout layout = new GridLayout(Config.NUMBER_OF_PROFILES+2,1);
+		GridLayout layout = new GridLayout(Config.NUMBER_OF_PROFILES+3,1);
 		layout.setVgap(10);
 		setLayout(layout);
 		
@@ -74,6 +76,35 @@ public class ChooseProfile extends GameState{
 		if(jumper.getCurrentProfileIndex()!=-1)
 			profileButtons_[jumper.getCurrentProfileIndex()].setSelected(true);
 		
+		//"Create" button
+		JButton createButton = new JButton("Create");
+		createButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				String profileName = JOptionPane.showInputDialog(ChooseProfile.this, "Type your profile's name", "Create new profile", JOptionPane.QUESTION_MESSAGE);
+				try {
+					//create new profile 
+					Profile newProfile = Profile.create(profileName);
+					Profile[] profiles = jumper_.getProfiles();
+					int profileIndex = jumper_.getProfileCount();
+					profiles[profileIndex] = newProfile;
+					//select new profile
+					profileButtons_[profileIndex].setEnabled(true);
+					profileButtons_[profileIndex].setText(profileName);
+					profileButtons_[profileIndex].setSelected(true);
+					okButton.setEnabled(true);
+					if(profileIndex==jumper_.getProfileCount())
+						createButton.setEnabled(false);
+				} catch (IOException e) {
+					JOptionPane.showMessageDialog(ChooseProfile.this, e.getMessage(), "Error!", JOptionPane.ERROR_MESSAGE);
+					//e.printStackTrace();
+				}
+				
+			}
+		});
+		//disable "Create" button if there is no space for new profiles 
+		if(jumper.getProfileCount()==Config.NUMBER_OF_PROFILES)
+			createButton.setEnabled(false);
+		
 		//"Back" button
 		JButton backButton = new JButton("Back to menu");
 		backButton.addActionListener(new ActionListener() {
@@ -82,8 +113,8 @@ public class ChooseProfile extends GameState{
 			}
 		});
 		
-		
 		//add buttons
+		add(createButton);
 		add(okButton);
 		add(backButton);
 	}

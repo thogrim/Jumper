@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Scanner;
 
 /**
@@ -24,7 +25,7 @@ public class Profile {
 	/**
 	 * Best scores for each level
 	 */
-	private int[] bestScores_ = new int[Config.NUMBER_OF_LEVELS];
+	private int[] bestScores_;
 	
 	public String getProfileName() {
 		return profileName_;
@@ -48,6 +49,7 @@ public class Profile {
 			Scanner scanner = new Scanner(new File(Config.PROFILES_PATH+"/"+filename));
 			profileName_ = filename.substring(0, filename.indexOf("."));
 			completedLevels_ = scanner.nextInt();
+			bestScores_ = new int[Config.NUMBER_OF_LEVELS];
 			for(int i = 0; i < Config.NUMBER_OF_LEVELS; ++i){
 				bestScores_[i] = scanner.nextInt();
 			}
@@ -57,24 +59,34 @@ public class Profile {
 		}
 	}
 	
+	private Profile(){
+	}
+	
 	/**
 	 * Creates new profile
 	 * 
 	 * @param profileName Name of the profile
 	 * @throws IOException
 	 */
-	public static void create(String profileName) throws IOException{
+	public static Profile create(String profileName) throws IOException{
 		//if profile exists throw exception
-		if(new File(profileName+".txt").exists())
+		if(new File(Config.PROFILES_PATH+"/"+profileName+".txt").exists())
 			throw new IOException("Name already taken! Choose something else.");
 		
-		//else create profile
-		FileWriter writer = new FileWriter(new File(profileName+".txt"));
-		writer.write(1+"\r\n");
-		for(int i = 0; i < Config.NUMBER_OF_LEVELS; ++i){
+		//else create file with profile information
+		FileWriter writer = new FileWriter(new File(Config.PROFILES_PATH+"/"+profileName+".txt"));
+		for(int i = 0; i < Config.NUMBER_OF_LEVELS+1; ++i){
 			writer.write(0+"\r\n");
 		}
 		writer.close();
+		
+		//and create profile
+		Profile newProfile = new Profile();
+		newProfile.profileName_ = profileName;
+		newProfile.completedLevels_ = 0;
+		newProfile.bestScores_ = new int[Config.NUMBER_OF_LEVELS];
+		Arrays.fill(newProfile.bestScores_, 0);
+		return newProfile;
 	}
 	
 	/**
