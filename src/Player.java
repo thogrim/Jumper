@@ -1,10 +1,5 @@
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import javax.imageio.ImageIO;
-
 /**
- * Player represents a game character
+ * Represents a player character
  *
  * @author Mateusz Antoniak
  */
@@ -12,22 +7,7 @@ import javax.imageio.ImageIO;
 public class Player extends GameObject{
 	
 	/**
-	 * Texture displayed when player is not moving in X axis
-	 */
-	private BufferedImage standTexture_;
-	
-	/**
-	 * Texture displayed when player is moving right
-	 */
-	private BufferedImage moveRightTexture_;
-	
-	/**
-	 * Texture displayed when player is moving left
-	 */
-	private BufferedImage moveLeftTexture_;
-	
-	/**
-	 * Simple enum that indicates player's moving state in X axis
+	 * Indicates player's moving state in X axis
 	 */
 	private enum PlayerState{
 		/**
@@ -85,22 +65,13 @@ public class Player extends GameObject{
 	private float oldY_;
 	
 	public Player(int xPos, int yPos, float worldGravity){
-		super(Config.PLAYER_STAND_TEXTURE,xPos,yPos);
-		try {
-			moveRightTexture_ = ImageIO.read(new File(Config.PLAYER_MOVE_RIGHT_TEXTURE));
-			moveLeftTexture_ = ImageIO.read(new File(Config.PLAYER_MOVE_LEFT_TEXTURE));			
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		super(Textures.playerStandTexture_,xPos,yPos);
 		worldGravity_ = worldGravity;
-		standTexture_ = texture_;
 		oldX_ = this.x;
 		oldY_ = this.y;
 		state_ = PlayerState.STANDING;
 		falling_ = false;
 		velocityY_ = 0.f;
-		
-		//mstate_ =0;
 	}
 	
 	/**
@@ -118,23 +89,14 @@ public class Player extends GameObject{
 	}
 	
 	public void startMovingRight(){
-		//state_ = PlayerState.MOVING_RIGHT;
-		//texture_ = moveRightTexture_;
 		mstate_ |= MOVE_RIGHT_PRESSED;
 		resolveMoveState();
 	}
 	
 	public void startMovingLeft(){
-		//state_ = PlayerState.MOVING_LEFT;
-		//texture_ = moveLeftTexture_;
 		mstate_ |= MOVE_LEFT_PRESSED;
 		resolveMoveState();
 	}
-
-//	public void stopMoving() {
-//		state_ = PlayerState.STANDING;
-//		texture_ = standTexture_;
-//	}
 	
 	public void stopMovingRight() {
 		mstate_ &= ~MOVE_RIGHT_PRESSED;
@@ -150,23 +112,23 @@ public class Player extends GameObject{
 		switch(mstate_){
 		case STANDING:
 			state_ = PlayerState.STANDING;
-			texture_ = standTexture_;
+			texture_ = Textures.playerStandTexture_;
 			break;
 		case MOVE_LEFT_PRESSED:
 			state_ = PlayerState.MOVING_LEFT;
-			texture_ = moveLeftTexture_;
+			texture_ = Textures.playerMoveLeftTexture_;
 			break;
 		case MOVE_RIGHT_PRESSED:
 			state_ = PlayerState.MOVING_RIGHT;
-			texture_ = moveRightTexture_;
+			texture_ = Textures.playerMoveRightTexture_;
 			break;
 		}
 	}
 	
 	/**
-	 * Sets player's falling state
+	 * Sets player falling state
 	 * 
-	 * @param falling player's falling state
+	 * @param falling - falling state
 	 */
 	public void setFalling(boolean falling){
 		falling_ = falling;
@@ -228,27 +190,4 @@ public class Player extends GameObject{
 			}
 		}
 	}
-
-//	public void checkForStanding(ArrayList<Platform> platforms) {
-//		//if(falling_)
-//		//	return;
-//		falling_ = true;
-//		for(Platform platform : platforms){
-//			//skip dead platforms
-//			if(!platform.isAlive())
-//				continue;
-//			//if player is standing on this platform
-//			if(this.x+this.width > platform.x && this.x < platform.x + platform.width && this.y + this.height == platform.y){
-//				falling_ = false;
-//				platform.stepOn();
-//			}
-//			//else if player is not standing on this platform
-//			else{
-//				//if player was standing on this platform, destroy it 
-//				if(platform.steppedOn())
-//					platform.destroy();
-//			}
-//		}
-//	}
-
 }

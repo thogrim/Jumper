@@ -1,7 +1,8 @@
-import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.AffineTransform;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -31,6 +32,16 @@ public class Gameplay extends GameState{
 	 * Game's world
 	 */
 	private World world_;
+	
+	/**
+	 * Resize factor in X axis for drawing world
+	 */
+	private static double scaleX;
+	
+	/**
+	 * Resize factor in Y axis for drawing world
+	 */
+	private static double scaleY;
 	
 	/**
 	 * Label that shows number of alive platforms 
@@ -100,9 +111,26 @@ public class Gameplay extends GameState{
 		optionsPanel_.add(playerLifesNumberLabel_);
 		
 		//World
-		world_ = new World(this,levelName);		
+		world_ = new World(this,levelName);
+		scaleX = 1;
+		scaleY = 1;
 		add(optionsPanel_);
 		world_.start();
+	}
+	
+	public static double getScaleX(){
+		return scaleX;
+	}
+	
+	public static double getScaleY(){
+		return scaleY;
+	}
+	
+	public void onFrameResize(int newWidth, int newHeight){
+		setSize(newWidth,newHeight);
+		optionsPanel_.setBounds(newWidth-OPTIONS_PANEL_WIDTH, 0, OPTIONS_PANEL_WIDTH, newHeight);
+		scaleX = (double) (newWidth-OPTIONS_PANEL_WIDTH)/(double) World.WORLD_WIDTH;
+		scaleY = (double) newHeight/(double) World.WORLD_HEIGHT;
 	}
 	
 	/**
@@ -151,10 +179,6 @@ public class Gameplay extends GameState{
 	@Override
 	public void paintComponent(Graphics g){
 		super.paintComponent(g);
-		//draw world background
-		g.setColor(Color.CYAN);
-		g.fillRect(0,0,800,600);
-		//draw world
 		world_.draw(g);
 	}
 }

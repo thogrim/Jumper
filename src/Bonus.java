@@ -7,7 +7,7 @@ public class Bonus extends GameObject{
 	private boolean collected_;
 
 	public Bonus(int xPos, int yPos) {
-		super(Config.BONUS_TEXTURE, xPos, yPos);
+		super(Textures.bonusTexture_, xPos, yPos);
 		collected_ = false;
 	}
 	
@@ -17,9 +17,11 @@ public class Bonus extends GameObject{
 	
 	public void collect(){
 		collected_= true;
+		texture_ = null;
 	}
 	
 	public void reset(){
 		collected_ = false;
+		texture_ = Textures.bonusTexture_;
 	}
 }

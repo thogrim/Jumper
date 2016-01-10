@@ -1,3 +1,5 @@
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.io.File;
 
 import javax.swing.JFrame;
@@ -45,6 +47,20 @@ public class Jumper extends JFrame{
 		//System.out.println(state_.getWidth());
 		//state_.setBounds((getContentPane().getWidth()-state_.getWidth())/2, (getContentPane().getHeight()-state_.getHeight())/2, state_.getWidth(), state_.getHeight());
 		getContentPane().add(state_);
+		getContentPane().addComponentListener(new ComponentListener() {
+			public void componentShown(ComponentEvent e) {
+				//do nothing
+			}
+			public void componentResized(ComponentEvent e) {
+				state_.onFrameResize(e.getComponent().getWidth(), e.getComponent().getHeight());
+			}
+			public void componentMoved(ComponentEvent e) {	
+				//do nothing
+			}
+			public void componentHidden(ComponentEvent e) {
+				//do nothing
+			}
+		});
 	}
 	
 	public int getCurrentProfileIndex(){
@@ -98,7 +114,7 @@ public class Jumper extends JFrame{
 	/**
 	 * Sets current state's panel to the center of the window
 	 */
-	private void centerState(){
+	public void centerState(){
 		state_.setBounds((getContentPane().getWidth()-state_.getWidth())/2, (getContentPane().getHeight()-state_.getHeight())/2, state_.getWidth(), state_.getHeight());
 	}
 	

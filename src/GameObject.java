@@ -1,10 +1,6 @@
 import java.awt.Graphics;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
 
 /**
  * Abstract class that represents game object
@@ -13,42 +9,29 @@ import javax.imageio.ImageIO;
  */
 @SuppressWarnings("serial")
 public abstract class GameObject extends Rectangle2D.Float{
-
+	
+	/**
+	 * Object's texture
+	 */
 	protected BufferedImage texture_;
 	
 	/**
 	 * Constructs new game object with texture 
 	 * 
-	 * @param textureFilePath Path to the texture
 	 */
-	public GameObject(String textureFilePath, int xPos, int yPos){
+	public GameObject(BufferedImage texture, int xPos, int yPos){
 		super(xPos*World.TILE_SIZE,yPos*World.TILE_SIZE,World.TILE_SIZE,World.TILE_SIZE);
-		try {
-			texture_ = ImageIO.read(new File(textureFilePath));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-//		xPos_ = xPos*World.TILE_SIZE;
-//		yPos_ = yPos*World.TILE_SIZE;
+		texture_ = texture;
 	}
 	
 	/**
-	 * Returns position x of game object
+	 * Constructs new game object with texture 
 	 * 
-	 * @return position in X axis
 	 */
-//	public float getX(){
-//		return xPos_;
-//	}
-	
-	/**
-	 * Returns position y of game object
-	 * 
-	 * @return position in Y axis
-	 */
-//	public float getY(){
-//		return yPos_;
-//	}
+	public GameObject(BufferedImage texture, int xPos, int yPos, int width, int height){
+		super(xPos*World.TILE_SIZE,yPos*World.TILE_SIZE,width,height);
+		texture_ = texture;
+	}
 	
 	/**
 	 * Draws object's texture
@@ -57,6 +40,11 @@ public abstract class GameObject extends Rectangle2D.Float{
 	 */
 	public void draw(Graphics g){
 		if(texture_!=null)
-			g.drawImage(texture_, (int)getX(), (int)getY() ,texture_.getWidth(), texture_.getHeight(), null);
+			g.drawImage(texture_,
+				(int)(x*Gameplay.getScaleX()),
+				(int)(y*Gameplay.getScaleY()),
+				(int)(texture_.getWidth()*Gameplay.getScaleX()),
+				(int)(texture_.getHeight()*Gameplay.getScaleY()),
+				null);
 	}
 }

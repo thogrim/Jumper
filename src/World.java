@@ -1,5 +1,6 @@
-import java.awt.Dimension;
+import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
@@ -17,12 +18,17 @@ import javax.swing.KeyStroke;
 @SuppressWarnings("serial")
 public class World implements Runnable{
 	/**
-	 * Size of game's world in pixels
+	 * Width of game's world in pixels
 	 */
-	public static final Dimension WORLD_SIZE = new Dimension(800,600);
+	public static final int WORLD_WIDTH = 800;
 	
 	/**
-	 * Size of tiles that game's world is divided into(in pixels)
+	 * Height of game's world in pixels
+	 */
+	public static final int WORLD_HEIGHT = 600;
+	
+	/**
+	 * Size of tiles that world is divided into(in pixels)
 	 */
 	public static final int TILE_SIZE = 40;
 	
@@ -52,7 +58,7 @@ public class World implements Runnable{
 	public static final long UPDATE_DELTA_TIME = 16;
 	
 	/**
-	 * Game play panel
+	 * Game panel
 	 */
 	Gameplay gamePanel_;
 	
@@ -97,7 +103,7 @@ public class World implements Runnable{
 	private boolean paused_;
 	
 	/**
-	 * 
+	 * Indicates if level is completed
 	 */
 	private boolean completed_;
 	
@@ -107,6 +113,7 @@ public class World implements Runnable{
 	 * @param levelName
 	 */
 	public World(Gameplay game, String levelName){
+		Textures.readTextures();
 		gamePanel_ = game;
 		paused_ = true;
 		completed_ = false;
@@ -195,6 +202,9 @@ public class World implements Runnable{
 	}
 	
 	public void draw(Graphics g){
+		//Graphics2D g = worldBuffer_.createGraphics();
+		g.setColor(Color.CYAN);
+		g.fillRect(0,0,(int)(WORLD_WIDTH*Gameplay.getScaleX()),(int)(WORLD_HEIGHT*Gameplay.getScaleY()));
 		player_.draw(g);
 		for(Platform p : platforms_.get(currentPart_)){
 			p.draw(g);
@@ -203,7 +213,7 @@ public class World implements Runnable{
 			b.draw(g);
 		}
 	}
-
+	
 	public boolean completed(){
 		return completed_;
 	}
@@ -260,7 +270,7 @@ public class World implements Runnable{
 			}
 		}
 		//world collision
-		if(player_.y > WORLD_SIZE.height){
+		if(player_.y > WORLD_HEIGHT){
 			player_.respawn(playerSpawnPositions_[currentPart_][0],playerSpawnPositions_[currentPart_][1]);
 			for(Platform platform : platforms_.get(currentPart_))
 				platform.reset();
@@ -269,8 +279,8 @@ public class World implements Runnable{
 			gamePanel_.updatePlayerLifesLabel(playerLifes_);
 			gamePanel_.updatePlatformsLabel(alivePlatforms_, alivePlatforms_);
 		}
-		else if(player_.x + player_.width > World.WORLD_SIZE.width)
-			player_.x = World.WORLD_SIZE.width - player_.width;
+		else if(player_.x + player_.width > World.WORLD_WIDTH)
+			player_.x = World.WORLD_WIDTH - player_.width;
 		else if(player_.x < 0)
 			player_.x = 0;
 	}
@@ -330,6 +340,7 @@ public class World implements Runnable{
 					completed_ = true;
 					gamePanel_.onPlayerDeath();
 				}
+				//repaintWorld();
 				gamePanel_.repaint();
 			}
 		}

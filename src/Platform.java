@@ -1,10 +1,8 @@
-import java.awt.image.BufferedImage;
-
 @SuppressWarnings("serial")
 public class Platform extends GameObject{
 	
 	/**
-	 * Simple enum that indicates Platform's current state
+	 * Indicates Platform's current state
 	 */
 	private enum PlatformState{
 		/**
@@ -16,7 +14,7 @@ public class Platform extends GameObject{
 		 */
 		STEPPED_ON,
 		/**
-		 * Platform has been destroyed and is no longer displayed on screen and nor it interacts with player.
+		 * Platform has been destroyed; It is no longer displayed on screen and it does not interact with player.
 		 */
 		DEAD
 	}
@@ -28,12 +26,9 @@ public class Platform extends GameObject{
 	 */
 	private PlatformState state_;
 	
-	private BufferedImage aliveTexture_;
-	
 	public Platform(int xPos, int yPos) {
-		super(Config.PLATFORM_TEXTURE,xPos,yPos);
+		super(Textures.platformTexture_,xPos,yPos);
 		state_ = PlatformState.ALIVE;
-		aliveTexture_ = texture_;
 	}
 	
 	/**
@@ -46,7 +41,7 @@ public class Platform extends GameObject{
 	}
 	
 	/**
-	 * Sets platform's state to PlatformState.STEPPED_ON. This method is invoked when player steps onto platform.
+	 * Sets platform's state to PlatformState.STEPPED_ON
 	 */
 	public void stepOn(){
 		state_ = PlatformState.STEPPED_ON;
@@ -73,7 +68,7 @@ public class Platform extends GameObject{
 	 */
 	public void reset(){
 		state_ = PlatformState.ALIVE;
-		texture_ = aliveTexture_;
+		texture_ = Textures.platformTexture_;
 	}
 
 }

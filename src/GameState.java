@@ -17,4 +17,8 @@ public abstract class GameState extends JPanel{
 		super();
 		jumper_ = jumper;
 	}
+	
+	public void onFrameResize(int newWidth, int newHeight){
+		jumper_.centerState();
+	}
 }
