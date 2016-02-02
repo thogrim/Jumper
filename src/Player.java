@@ -7,65 +7,87 @@
 public class Player extends GameObject{
 	
 	/**
-	 * Indicates player's moving state in X axis
+	 * Stan poruszania siê gracza w osi X
 	 */
 	private enum PlayerState{
 		/**
-		 * Player's velocity in X axis is equal to 0
+		 * Gracz stoi w miejscu
 		 */
 		STANDING,
 		/**
-		 * Player's velocity in X axis is equal to Player.VELOCITY
+		 * Gracz porusza siê w prawo
 		 */
 		MOVING_RIGHT,
 		/**
-		 * Player's velocity in X axis is equal to -Player.VELOCITY
+		 * Gracz porusza siê w lewo
 		 */
 		MOVING_LEFT,
 	};
 	
 	/**
-	 * Current player state;
+	 * Aktualny stan poruszania siê w osi X
 	 */
 	private PlayerState state_;
 	
+	/**
+	 * Sta³a wskazuj¹ca, ¿e ¿aden klawisz ruchu nie jest wciœniêty
+	 */
 	private static final int STANDING = 0;
-	private static final int MOVE_RIGHT_PRESSED = 1;
-	private static final int MOVE_LEFT_PRESSED = 2;	
-	private int mstate_;
 	
 	/**
-	 * Indicates if player is falling down
+	 * Sta³a wskazuj¹ca, ¿e tylko klawisz ruchu w prawo jest wciœniêty
+	 */
+	private static final int MOVE_RIGHT_PRESSED = 1;
+	
+	/**
+	 * Sta³a wskazuj¹ca, ¿e tylko klawisz ruchu w lewo jest wciœniêty
+	 */
+	private static final int MOVE_LEFT_PRESSED = 2;
+	
+	/**
+	 * Informacja o wciœniêtych klawiszach ruchu
+	 */
+	private int moveKeysState_;
+	
+	/**
+	 * Wskazuje, czy gracz spada
 	 */
 	private boolean falling_;
 	
 	/**
-	 * Velocity of a player in X axis in pixels per second
+	 * Prêdkoœæ gracza w osi X(w pikselach na sekundê)
 	 */
 	private final static float VELOCITY_X = 270.f;
 	
 	/**
-	 * World's gravity
+	 * Grawitacja œwiata gry
 	 */
 	private float worldGravity_;
 	
 	/**
-	 * Velocity of a player in Y axis in pixels per second
+	 * Prêdkoœæ gracza w osi Y(w pikselach na sekundê)
 	 */
 	private float velocityY_;
 	
 	/**
-	 * Player's X position in previous frame
+	 * Pozycja X gracza w poprzedniej klatce
 	 */
 	private float oldX_;
 	
 	/**
-	 * Player's Y position in previous frame 
+	 * Pozycja Y gracza w poprzedniej klatce
 	 */
 	private float oldY_;
 	
+	/**
+	 * Konstruuje postaæ gracza na pozycji x, y
+	 * 
+	 * @param xPos - Pozycja x(w kafelkach)
+	 * @param yPos - Pozycja y(w kafelkach)
+	 * @param worldGravity - grawitacja œwiata gry
+	 */
 	public Player(int xPos, int yPos, float worldGravity){
-		super(Textures.playerStandTexture_,xPos,yPos);
+		super(Textures.PLAYER_STAND_TEXTURE,xPos,yPos);
 		worldGravity_ = worldGravity;
 		oldX_ = this.x;
 		oldY_ = this.y;
@@ -75,7 +97,7 @@ public class Player extends GameObject{
 	}
 	
 	/**
-	 * Resets player position
+	 * Resetuje pozycjê gracza
 	 * 
 	 * @param xTilePos X position in tiles
 	 * @param yTilePos Y position in tiles
@@ -88,52 +110,70 @@ public class Player extends GameObject{
 		falling_ = false;
 	}
 	
+	/**
+	 * Informuje o wciœniêciu klawisza poruszania siê w prawo
+	 */
 	public void startMovingRight(){
-		mstate_ |= MOVE_RIGHT_PRESSED;
+		moveKeysState_ |= MOVE_RIGHT_PRESSED;
 		resolveMoveState();
 	}
 	
+	/**
+	 * Informuje o wciœniêciu klawisza poruszania siê w lewo
+	 */
 	public void startMovingLeft(){
-		mstate_ |= MOVE_LEFT_PRESSED;
+		moveKeysState_ |= MOVE_LEFT_PRESSED;
 		resolveMoveState();
 	}
 	
+	/**
+	 * Informuje o puszczeniu klawisza poruszania siê w prawo
+	 */
 	public void stopMovingRight() {
-		mstate_ &= ~MOVE_RIGHT_PRESSED;
+		moveKeysState_ &= ~MOVE_RIGHT_PRESSED;
 		resolveMoveState();
 	}
 	
+	/**
+	 * Informuje o puszczeniu klawisza poruszania siê w lewo
+	 */
 	public void stopMovingLeft(){
-		mstate_ &= ~MOVE_LEFT_PRESSED;
+		moveKeysState_ &= ~MOVE_LEFT_PRESSED;
 		resolveMoveState();
 	}
 	
+	/**
+	 * Ustawia nowy stan poruszania siê gracza
+	 */
 	private void resolveMoveState(){
-		switch(mstate_){
+		switch(moveKeysState_){
 		case STANDING:
 			state_ = PlayerState.STANDING;
-			texture_ = Textures.playerStandTexture_;
+			texture_ = Textures.PLAYER_STAND_TEXTURE;
 			break;
 		case MOVE_LEFT_PRESSED:
 			state_ = PlayerState.MOVING_LEFT;
-			texture_ = Textures.playerMoveLeftTexture_;
+			texture_ = Textures.PLAYER_MOVE_LEFT_TEXTURE;
 			break;
 		case MOVE_RIGHT_PRESSED:
 			state_ = PlayerState.MOVING_RIGHT;
-			texture_ = Textures.playerMoveRightTexture_;
+			texture_ = Textures.PLAYER_MOVE_RIGHT_TEXTURE;
 			break;
 		}
 	}
 	
 	/**
-	 * Sets player falling state
+	 * Ustawia flagê wskazuj¹c¹ czy gracz spada
 	 * 
-	 * @param falling - falling state
+	 * @param falling - True jeœli gracz spada, false w przeciwnym wypdaku
 	 */
 	public void setFalling(boolean falling){
 		falling_ = falling;
 	}
 	
+	/**
+	 * Powoduje skok gracza
+	 */
 	public void jump(){
 		if(!falling_){
 			velocityY_ = -800.f;
@@ -141,6 +181,9 @@ public class Player extends GameObject{
 		}
 	}
 	
+	/**
+	 * Aktualizuje pozycjê gracza
+	 */
 	public void move(){
 		//updating old position
 		oldX_ = this.x;
@@ -167,6 +210,11 @@ public class Player extends GameObject{
 		}
 	}
 
+	/**
+	 * Obs³uguje zdarzenie kolizji gracza z platform¹
+	 * 
+	 * @param platform - Platforma, z któr¹ dosz³o do kolzji
+	 */
 	public void onCollsionWithPlatform(Platform platform) {
 		//if player collided from left or right
 		if(oldY_+this.height > platform.y && oldY_ < platform.y + platform.height){
@@ -190,4 +238,5 @@ public class Player extends GameObject{
 			}
 		}
 	}
+	
 }

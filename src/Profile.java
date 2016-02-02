@@ -6,51 +6,84 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 /**
- * Profile class represents player's profile information
+ * Reprezentuje profil gracza
  *
  * @author Mateusz Antoniak
  */
 public class Profile {
 	
 	/**
-	 * Name of the profile
+	 * Nazwa profilu
 	 */
 	private String profileName_;
 	
 	/**
-	 * Number of levels that player has completed so far
+	 * Liczba ukoñczonych poziomów
 	 */
 	private int completedLevels_;
 	
 	/**
-	 * Best scores for each level
+	 * Najlepszy wynik gracza w ka¿dym poziomie
 	 */
 	private int[] bestScores_;
 	
-	public String getProfileName() {
+	/**
+	 * Zwraca nazwê profilu
+	 * 
+	 * @return Nazwa profilu
+	 */
+	public String getName() {
 		return profileName_;
 	}
 
+	/**
+	 * Zwraca liczbê ukoñczonych poziomów
+	 * 
+	 * @return Liczba ukoñczonych poziomów
+	 */
 	public int getCompletedLevels() {
 		return completedLevels_;
 	}
 
+	/**
+	 * Zwraca najlepsze wyniki gracza 
+	 * 
+	 * @return Najlepsze wyniki gracza
+	 */
 	public int[] getBestScores() {
 		return bestScores_;
 	}
-
+	
 	/**
-	 * Constructs profile from information stored in text file
+	 * Odblokowuje kolejny poziom
+	 */
+	public void unlockNextLevel(){
+		++completedLevels_;
+	}
+	
+	
+	/**
+	 * Ustawia nowy najlepszy wynik gracza
 	 * 
-	 * @param filename Name of file that contains profile's information
+	 * @param points - Liczba uzyskanych punktów
+	 * @param levelId - Identyfikator poziomu
+	 */
+	public void setNewHighscore(int points, int levelId){
+		bestScores_[levelId] = points;
+	}
+	
+	/**
+	 * Konstruuje profil gracza na podstawie danych zawartych w pliku
+	 * 
+	 * @param filename - Nazwa pliku z danymi profilowymi
 	 */
 	public Profile(String filename){
 		try {
 			Scanner scanner = new Scanner(new File(Config.PROFILES_PATH+"/"+filename));
 			profileName_ = filename.substring(0, filename.indexOf("."));
 			completedLevels_ = scanner.nextInt();
-			bestScores_ = new int[Config.NUMBER_OF_LEVELS];
-			for(int i = 0; i < Config.NUMBER_OF_LEVELS; ++i){
+			bestScores_ = new int[Config.NUM_OF_LEVELS];
+			for(int i = 0; i < Config.NUM_OF_LEVELS; ++i){
 				bestScores_[i] = scanner.nextInt();
 			}
 			scanner.close();
@@ -59,23 +92,30 @@ public class Profile {
 		}
 	}
 	
+	/**
+	 * Prywatny domyœlny konstruktor 
+	 */
 	private Profile(){
 	}
 	
 	/**
-	 * Creates new profile
+	 * Tworzy nowy profil i jego plik z danymi
 	 * 
-	 * @param profileName Name of the profile
+	 * @param profileName - Nazwa profilu
 	 * @throws IOException
 	 */
 	public static Profile create(String profileName) throws IOException{
-		//if profile exists throw exception
+		//if profile exists or string is empty throw exception
+		//if(profileName==null)
+		//	throw new IOException("Name cannot be null!");
+		if(profileName.length()==0)
+			throw new IOException("Name cannot be null!");
 		if(new File(Config.PROFILES_PATH+"/"+profileName+".txt").exists())
 			throw new IOException("Name already taken! Choose something else.");
 		
 		//else create file with profile information
 		FileWriter writer = new FileWriter(new File(Config.PROFILES_PATH+"/"+profileName+".txt"));
-		for(int i = 0; i < Config.NUMBER_OF_LEVELS+1; ++i){
+		for(int i = 0; i < Config.NUM_OF_LEVELS+1; ++i){
 			writer.write(0+"\r\n");
 		}
 		writer.close();
@@ -84,25 +124,22 @@ public class Profile {
 		Profile newProfile = new Profile();
 		newProfile.profileName_ = profileName;
 		newProfile.completedLevels_ = 0;
-		newProfile.bestScores_ = new int[Config.NUMBER_OF_LEVELS];
+		newProfile.bestScores_ = new int[Config.NUM_OF_LEVELS];
 		Arrays.fill(newProfile.bestScores_, 0);
 		return newProfile;
 	}
 	
 	/**
-	 * Saves profile information
+	 * Zapisuje dane profilu do pliku
 	 */
 	void saveProfile(){
 		try {
-			FileWriter writer = new FileWriter(new File(profileName_+".temp"));
-			writer.write(completedLevels_+"\r\n");
-			for(int i = 0; i < Config.NUMBER_OF_LEVELS; ++i){
-				writer.write(bestScores_[i]+"\r\n");
+			FileWriter writer = new FileWriter(new File(Config.PROFILES_PATH+"/"+profileName_+".txt"));
+			writer.write(completedLevels_+"\n");
+			for(int i = 0; i < Config.NUM_OF_LEVELS; ++i){
+				writer.write(bestScores_[i]+"\n");
 			}
 			writer.close();
-			File filename = new File(profileName_+".txt");
-			filename.delete();
-			new File(profileName_+".temp").renameTo(filename);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

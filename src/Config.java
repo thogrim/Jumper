@@ -3,87 +3,108 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.InputMismatchException;
 import java.util.Scanner;
+
 /**
- * This class holds all configuration data and constants
+ * Zawiera definicje wszystkich sta³ych u¿ytych w aplikacji
  * 
  * @author Mateusz Antoniak
  */
 public class Config {
 	
 	/**
-	 * Number of levels in game
+	 * Znak nowej linii
 	 */
-	public static final int NUMBER_OF_LEVELS = 10;
+	public static final String NEW_LINE = System.getProperty("line.separator");
 	
 	/**
-	 * Maximum number of profiles in game
+	 * Liczba poziomów w grze
 	 */
-	public static final int NUMBER_OF_PROFILES = 6;
+	public static final int NUM_OF_LEVELS = 10;
 	
 	/**
-	 * Number of lifes that player has at the start of the game
+	 * Maksymalna liczba profili
 	 */
-	public static final int NUMBER_OF_PLAYER_LIFES = 10;
+	public static int NUM_OF_PROFILES = 6;
 	
 	/**
-	 * Path to folder containing level data
+	 * Liczba ¿yæ gracza na pocz¹tku gry
+	 */
+	public static int NUM_OF_PLAYER_LIFES = 10;
+	
+	/**
+	 * Liczba wyœwietlanych najlepszych wyników
+	 */
+	public static final int NUM_OF_HIGHSCORES = 5; 
+	
+	/**
+	 * Œcie¿ka do folderu z definicjami poziomów
 	 */
 	public static final String LEVELS_PATH = "res/levels";
 	
 	/**
-	 * Path to folder containing profiles data
+	 * Œcie¿ka do folderu z zapisanymi profilami
 	 */
 	public static final String PROFILES_PATH = "res/profiles";
 	
 	/**
-	 * Path to image containing player's texture
+	 * Œcie¿ka do pliku z najlepszymi wynikami
+	 */
+	public static final String HIGHSCORES_PATH = "highscores.txt";
+	
+	/**
+	 * Œcie¿ka do tekstury gracza(podczas stania w miejscu)
 	 */
 	public static final String PLAYER_STAND_TEXTURE = "res/img/player.png";
 	
 	/**
-	 * Path to image containing player's texture
+	 * Œcie¿ka do tekstury gracza(podczas poruszania siê w prawo)
 	 */
 	public static final String PLAYER_MOVE_RIGHT_TEXTURE = "res/img/playerRight.png";
 	
 	/**
-	 * Path to image containing player's texture
+	 * Œcie¿ka do tekstury gracza(podczas poruszania siê w lewo)
 	 */
 	public static final String PLAYER_MOVE_LEFT_TEXTURE = "res/img/playerLeft.png";
 	
 	/**
-	 * Path to image containing platform's texture
+	 * Œcie¿ka do tekstury platformy
 	 */
 	public static final String PLATFORM_TEXTURE = "res/img/platform.png";
 	
 	/**
-	 * Path to image containing platform's texture
+	 * Œcie¿ka do tekstury bonusu
 	 */
 	public static final String BONUS_TEXTURE = "res/img/bonus.png";
 	
 	/**
-	 * Initial window size
+	 * Rozmiar okna na starcie
 	 */
-	private static Dimension windowSize_= new Dimension(600, 600);
+	public static final Dimension WINDOW_SIZE= new Dimension(600, 600);
 	
 	/**
-	 * Window size when application enters gameplay state
+	 * Rozmiar okna gdy gracz rozpoczyna rozgrywkê
 	 */
-	private static Dimension gameplayWindowSize_ = new Dimension(1000,600);
+	public static final Dimension GAMEPLAY_WINDOW_SIZE = new Dimension(1000,600);
 	
 	/**
-	 * Reads main configuration data from "config.txt" file. If "config.txt"
-	 * is not found, configuration data holds default values.
+	 * Przechowuje nazwy poziomów
+	 */
+	private static String[] LEVEL_NAMES = new String[NUM_OF_LEVELS];
+	
+	/**
+	 * Wczytuje konfiguracjê
 	 */
 	public static void readConfiguration(){
 		try {
 			Scanner scanner = new Scanner(new File("config.txt"));
 			//skip comments
-			System.out.println(scanner.nextLine());
-			System.out.println(scanner.nextLine());
-			//read initial window size
-			windowSize_.width = scanner.nextInt();
-			windowSize_.height = scanner.nextInt();
-			System.out.println(windowSize_.width+" "+windowSize_.height);
+			scanner.nextLine();
+			Config.NUM_OF_PLAYER_LIFES = scanner.nextInt();
+			scanner.nextLine();
+			for(int i=0; i< NUM_OF_LEVELS; ++i){
+				scanner.nextLine();
+				LEVEL_NAMES[i] = scanner.next();
+			}
 			scanner.close();
 		} catch (FileNotFoundException e) {
 			System.out.println("Main configuration file \"config.txt\" not found!");
@@ -95,16 +116,13 @@ public class Config {
 	}
 	
 	/**
-	 * @return Initial window size
+	 * Returns level name
+	 * 
+	 * @param id - Id of a level
+	 * @return Name of level
 	 */
-	public static Dimension getWindowSize(){
-		return windowSize_;
+	public static String getLevelName(int id){
+		return LEVEL_NAMES[id];
 	}
 	
-	/**
-	 * @return Initial window size when in Gameplay state
-	 */
-	public static Dimension getGameplayWindowSize(){
-		return gameplayWindowSize_;
-	}
 }

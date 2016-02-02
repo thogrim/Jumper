@@ -1,5 +1,13 @@
-#Configuration file for Jumper application
-#Initial Window's size(WIDTH HEIGHT)
-600 600
-#Gameplay Window's size(WIDTH HEIGHT)
-1000 600
+// Number of player lifes
+10
+// Level names
+level1
+level2
+level3
+level4
+level5
+level6
+level7
+level8
+level9
+level10

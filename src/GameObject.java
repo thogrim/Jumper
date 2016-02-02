@@ -3,7 +3,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
 /**
- * Abstract class that represents game object
+ * Reprezentuje abstrakcyjny obiekt w grze
  *
  * @author Mateusz Antoniak
  */
@@ -11,32 +11,35 @@ import java.awt.image.BufferedImage;
 public abstract class GameObject extends Rectangle2D.Float{
 	
 	/**
-	 * Object's texture
+	 * Referencja na tekturê
 	 */
 	protected BufferedImage texture_;
 	
 	/**
-	 * Constructs new game object with texture 
+	 * Konstruuje nowy obiekt na pozycji x, y i z podan¹ tekstur¹
 	 * 
+	 * @param texture - Tekstura obiektu
+	 * @param xPos - Pozycja X(w kafelkach)
+	 * @param yPos - Pozycja Y(w kafelkach)
 	 */
 	public GameObject(BufferedImage texture, int xPos, int yPos){
 		super(xPos*World.TILE_SIZE,yPos*World.TILE_SIZE,World.TILE_SIZE,World.TILE_SIZE);
 		texture_ = texture;
 	}
 	
-	/**
-	 * Constructs new game object with texture 
-	 * 
-	 */
-	public GameObject(BufferedImage texture, int xPos, int yPos, int width, int height){
-		super(xPos*World.TILE_SIZE,yPos*World.TILE_SIZE,width,height);
-		texture_ = texture;
-	}
+//	/**
+//	 * Constructs new game object with texture 
+//	 * 
+//	 */
+//	public GameObject(BufferedImage texture, int xPos, int yPos, int width, int height){
+//		super(xPos*World.TILE_SIZE,yPos*World.TILE_SIZE,width,height);
+//		texture_ = texture;
+//	}
 	
 	/**
-	 * Draws object's texture
+	 * Rysuje obiekt
 	 * 
-	 * @param g Graphics context
+	 * @param g Kontekst graficzny
 	 */
 	public void draw(Graphics g){
 		if(texture_!=null)

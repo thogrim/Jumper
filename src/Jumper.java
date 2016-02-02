@@ -1,3 +1,4 @@
+import java.awt.Dimension;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.io.File;
@@ -6,7 +7,7 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
 /**
- * This is the main class for Jumper application
+ * G³ówna klasa reprezentuj¹ca okno aplikacji Jumper
  * 
  * @author Mateusz Antoniak
  */
@@ -14,22 +15,22 @@ import javax.swing.SwingUtilities;
 public class Jumper extends JFrame{
 	
 	/**
-	 * Current game state
+	 * Aktualny stan gry
 	 */
 	private GameState state_;
 	
 	/**
-	 * Table that stores all profiles
+	 * Tablica przechowuj¹ca profile
 	 */
-	private Profile[] profiles_ = new Profile[Config.NUMBER_OF_PROFILES];
+	private Profile[] profiles_ = new Profile[Config.NUM_OF_PROFILES];
 	
 	/**
-	 * Index of currently chosen profile in profiles_ table
+	 * Indeks aktualnie wybranego profilu
 	 */
-	private int currentProfile_;
+	private int currentProfile_; 
 	
 	/**
-	 * Default constructor
+	 * Domyœlny konstruktor
 	 */
 	public Jumper(){
 		super("Jumper!");
@@ -37,15 +38,15 @@ public class Jumper extends JFrame{
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setVisible(true);
 		getContentPane().setLayout(null);
-		getContentPane().setPreferredSize(Config.getWindowSize());
+		setMinimumSize(new Dimension(300,500));
+		getContentPane().setPreferredSize(Config.WINDOW_SIZE);
 		pack();
 		
 		currentProfile_ = -1;
 		readProfiles();
 		state_ = new MainMenu(this);
 		centerState();
-		//System.out.println(state_.getWidth());
-		//state_.setBounds((getContentPane().getWidth()-state_.getWidth())/2, (getContentPane().getHeight()-state_.getHeight())/2, state_.getWidth(), state_.getHeight());
+		state_.setBounds((getContentPane().getWidth()-state_.getWidth())/2, (getContentPane().getHeight()-state_.getHeight())/2, state_.getWidth(), state_.getHeight());
 		getContentPane().add(state_);
 		getContentPane().addComponentListener(new ComponentListener() {
 			public void componentShown(ComponentEvent e) {
@@ -63,22 +64,37 @@ public class Jumper extends JFrame{
 		});
 	}
 	
+	/**
+	 * Zwraca indeks aktualnego profilu
+	 * 
+	 * @return Indeks aktualnego profilu
+	 */
 	public int getCurrentProfileIndex(){
 		return currentProfile_;
 	}
 	
+	/**
+	 * Zwraca aktualnie wybrany profil
+	 * 
+	 * @return Aktualnie wybrany profil
+	 */
 	public Profile getCurrentProfile(){
 		return currentProfile_ == -1 ? null : profiles_[currentProfile_];
 	}
 	
+	/**
+	 * Zwraca wszystkie profile w grze
+	 * 
+	 * @return Wszystkie profile
+	 */
 	public Profile[] getProfiles(){
 		return profiles_;
 	}
 	
 	/**
-	 * Returns the number of profiles
+	 * Zwraca liczbê profili
 	 * 
-	 * @return Profile count
+	 * @return Liczba profili
 	 */
 	public int getProfileCount(){
 		int i = 0;
@@ -90,18 +106,18 @@ public class Jumper extends JFrame{
 	}
 	
 	/**
-	 * Sets current profile to the profiles_[i] 
+	 * Ustawia aktualny profil
 	 * 
-	 * @param i index in profiles_ table
+	 * @param i Indeks profilu
 	 */
 	public void setCurrentProfile(int i){
 		currentProfile_ = i;
 	}
 	
 	/**
-	 * Sets current state of the game
+	 * Ustawia stan gry
 	 * 
-	 * @param state Next game state
+	 * @param state Nowy stan gry
 	 */
 	public void setGameState(GameState state){
 		state_.setVisible(false);
@@ -112,34 +128,21 @@ public class Jumper extends JFrame{
 	}
 	
 	/**
-	 * Sets current state's panel to the center of the window
+	 * Ustawia panel stanu gry na œrodku okna
 	 */
 	public void centerState(){
 		state_.setBounds((getContentPane().getWidth()-state_.getWidth())/2, (getContentPane().getHeight()-state_.getHeight())/2, state_.getWidth(), state_.getHeight());
-	}
+	}	
 	
 	/**
-	 * Pops up "Choose Profile" JDialog. Here you can choose profile
-	 * from existing ones or create new 
-	 */
-//	public void chooseProfile(){
-//		if(chooseProfileDialog_==null){
-//			chooseProfileDialog_ = new JDialog(this,"aa", true);
-//			chooseProfileDialog_.setSize(100, 300);
-//		}
-//		chooseProfileDialog_.setVisible(true);
-//	}
-	
-	/**
-	 * Reads information about profiles
+	 * Wczytuje informacje o profilach
 	 */
 	private void readProfiles(){
 		String[] filepaths = new File(Config.PROFILES_PATH).list();
 		int numOfProfiles = filepaths.length;
-		if(numOfProfiles > Config.NUMBER_OF_PROFILES)
-			numOfProfiles = Config.NUMBER_OF_PROFILES;
+		if(numOfProfiles > Config.NUM_OF_PROFILES)
+			numOfProfiles = Config.NUM_OF_PROFILES;
 		for(int i = 0; i < numOfProfiles; ++i){
-			System.out.println("Reading profile from: "+filepaths[i]);
 			profiles_[i] = new Profile(filepaths[i]);
 		}
 	}
@@ -147,8 +150,9 @@ public class Jumper extends JFrame{
 	public static void main(String[] args){
 		SwingUtilities.invokeLater(new Runnable(){
 			public void run(){
-				Config.readConfiguration();
-				new Jumper();
+				JumperClient client = new JumperClient();
+				Dimension d = client.getToolkit().getScreenSize();
+				client.setLocation((int)(d.getWidth()/2-client.getWidth()/2),(int)(d.getHeight()/2-client.getHeight()/2));
 			}
 		});
 	}

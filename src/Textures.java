@@ -5,74 +5,53 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 /**
+ * Przechowuje tektury 
  * 
  * @author Mateusz Antoniak
  */
 public class Textures {
 	
 	/**
-	 * Indicates if textures have already been loaded into memory
+	 * Wskazuje, czy tekstury zosta³y za³adowane do pamiêci
 	 */
 	private static boolean texturesLoaded_ = false;
 	
 	/**
-	 * Platform texture
+	 * Tekstura platformy
 	 */
-	public static BufferedImage platformTexture_;
+	public static BufferedImage PLATFORM_TEXTURE;
 	
 	/**
-	 * Bonus texture
+	 * Tekstura bonusu
 	 */
-	public static BufferedImage bonusTexture_;
+	public static BufferedImage BONUS_TEXTURE;
 	
 	/**
-	 * Player texture(while standing)
+	 * Tekstura gracza(podczas stania w miejscu)
 	 */
-	public static BufferedImage playerStandTexture_;
+	public static BufferedImage PLAYER_STAND_TEXTURE;
 	
 	/**
-	 * Player texture(while moving left)
+	 * Tekstura gracza(podczas poruszania siê w lewo)
 	 */
-	public static BufferedImage playerMoveLeftTexture_;
+	public static BufferedImage PLAYER_MOVE_LEFT_TEXTURE;
 	
 	/**
-	 * Player texture(while moving right)
+	 * Tekstura gracza(podczas poruszania siê w prawo)
 	 */
-	public static BufferedImage playerMoveRightTexture_;
+	public static BufferedImage PLAYER_MOVE_RIGHT_TEXTURE;
 	
 	/**
-	 * Reads texture from file located in specified path
-	 * 
-	 * @param texture - reference to the texture
-	 * @param filepath - path to the texture
-	 */
-//	private static void readTexture(BufferedImage texture, String filepath){
-//		//if(texture!=null){
-//			try{
-//				texture = ImageIO.read(new File(filepath));
-//			}
-//			catch(IOException e){
-//				e.printStackTrace();
-//			}
-//		//}
-//	}
-	
-	/**
-	 * Loads all textures used in game
+	 * Wczytuje tekstury
 	 */
 	public static void readTextures(){
 		if(!texturesLoaded_){
-//			readTexture(bonusTexture_,Config.BONUS_TEXTURE);
-//			readTexture(platformTexture_,Config.PLATFORM_TEXTURE);
-//			readTexture(playerMoveLeftTexture_,Config.PLAYER_MOVE_LEFT_TEXTURE);
-//			readTexture(playerMoveRightTexture_,Config.PLAYER_MOVE_RIGHT_TEXTURE);
-//			readTexture(playerStandTexture_,Config.PLAYER_STAND_TEXTURE);
 			try{
-				bonusTexture_ = ImageIO.read(new File(Config.BONUS_TEXTURE));
-				platformTexture_ = ImageIO.read(new File(Config.PLATFORM_TEXTURE));
-				playerMoveLeftTexture_ = ImageIO.read(new File(Config.PLAYER_MOVE_LEFT_TEXTURE));
-				playerMoveRightTexture_ = ImageIO.read(new File(Config.PLAYER_MOVE_RIGHT_TEXTURE));
-				playerStandTexture_ = ImageIO.read(new File(Config.PLAYER_STAND_TEXTURE));
+				BONUS_TEXTURE = ImageIO.read(new File(Config.BONUS_TEXTURE));
+				PLATFORM_TEXTURE = ImageIO.read(new File(Config.PLATFORM_TEXTURE));
+				PLAYER_MOVE_LEFT_TEXTURE = ImageIO.read(new File(Config.PLAYER_MOVE_LEFT_TEXTURE));
+				PLAYER_MOVE_RIGHT_TEXTURE = ImageIO.read(new File(Config.PLAYER_MOVE_RIGHT_TEXTURE));
+				PLAYER_STAND_TEXTURE = ImageIO.read(new File(Config.PLAYER_STAND_TEXTURE));
 			}
 			catch(IOException e){
 				e.printStackTrace();

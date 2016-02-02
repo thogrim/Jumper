@@ -1,80 +1,96 @@
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 /**
- * This class represents Choose Level menu
+ * Reprezentuje stan gry, w którym gracz wybiera poziom
  *
  * @author Mateusz Antoniak
  */
 @SuppressWarnings("serial")
 public class ChooseLevel extends GameState{
 
+	/**
+	 * Konstruuje nowy stan wyboru poziomu
+	 * 
+	 * @param jumper - Referencja na g³ówne okno gry
+	 */
 	public ChooseLevel(Jumper jumper){
 		super(jumper);
 		//setting panel properties
-		setSize(300,600);
+		setSize(200,400);
 		setVisible(true);
-		//GridBagLayout layout = new GridBagLayout();
-		//layout.setVgap(10);
-		//setLayout(layout);
-		setLayout(new GridBagLayout());
-		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.insets = new Insets(5,5,5,5);
-		
+		setLayout(new BorderLayout());
 		Profile profile = jumper.getCurrentProfile();
 		
-		//JLabel showing currently chosen profile
-		JLabel profileName = new JLabel("       Current Profile: "+profile.getProfileName()+"       ",JLabel.CENTER);
-		gbc.gridx = 0;
-		gbc.gridy = 0;
-		gbc.gridwidth = 2;
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-		add(profileName, gbc);
+		//profile name label
+		JLabel profileName = new JLabel("Current Profile: "+profile.getName(),JLabel.CENTER);
 		
-		//JLabels "Level" and "Best Score"
-		JLabel level = new JLabel("Level",JLabel.CENTER);
-		JLabel bestScore = new JLabel("Best Score",JLabel.CENTER);
-		gbc.gridy = 1;
-		gbc.gridwidth = 1;
-		add(level, gbc);
-		gbc.gridx = 1;
-		add(bestScore, gbc);
+		//Level label
+		JLabel levelLabel = new JLabel("Level",JLabel.CENTER);
 		
-		//Level buttons and best scores labels
-		String[] levelNames = new File(Config.LEVELS_PATH).list();
-		for(int i = 0; i < Config.NUMBER_OF_LEVELS; i++){
-			gbc.gridx = 0;
-			gbc.gridy = i+2;
-			JButton levelButton = new JButton(levelNames[i].substring(0, levelNames[i].indexOf(".")));
-			levelButton.addActionListener(new ActionListener() {
+		//Best score label
+		JLabel bestScoreLabel = new JLabel("Best Score",JLabel.CENTER);
+		
+		//level buttons
+		JButton[] levelButtons = new JButton[Config.NUM_OF_LEVELS];
+		for(int i = 0; i < Config.NUM_OF_LEVELS; ++i){
+			int levelID = i;
+			levelButtons[i] = new JButton(Config.getLevelName(i));
+			levelButtons[i].addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					jumper.setGameState(new Gameplay(jumper,e.getActionCommand()));
+					jumper.setGameState(new Gameplay(jumper,levelID));
 				}
 			});
-			add(levelButton, gbc);
-			gbc.gridx = 1;
-			JLabel score = new JLabel(Integer.toString(profile.getBestScores()[i]),JLabel.CENTER);
-			add(score, gbc);
+			if(i>profile.getCompletedLevels())
+				levelButtons[i].setEnabled(false);
 		}
 		
-		//Back button
+		//best scores labels
+		JLabel[] bestScoresLabels = new JLabel[Config.NUM_OF_LEVELS];
+		for(int i = 0; i < Config.NUM_OF_LEVELS; ++i){
+			bestScoresLabels[i] = new JLabel(Integer.toString(profile.getBestScores()[i]),JLabel.CENTER);
+		}
+		
+		//back button
 		JButton backButton = new JButton("Back");
+		backButton.setPreferredSize(new Dimension(80, 25));
 		backButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				jumper_.setGameState(new MainMenu(jumper_));
+				jumper.setGameState(new MainMenu(jumper));
 			}
 		});
-		gbc.gridwidth = 2;
-		gbc.gridx = 0;
-		gbc.gridy = Config.NUMBER_OF_LEVELS+2;
-		add(backButton, gbc);
+		
+		//panel for level buttons and best scores
+		JPanel levelButtonsScoresPanel = new JPanel();
+		GridLayout layout = new GridLayout(Config.NUM_OF_LEVELS+1,2);
+		layout.setVgap(5);
+		levelButtonsScoresPanel.setLayout(layout);
+		levelButtonsScoresPanel.add(levelLabel);
+		levelButtonsScoresPanel.add(bestScoreLabel);
+		for(int i = 0; i<Config.NUM_OF_LEVELS; ++i ){
+			levelButtonsScoresPanel.add(levelButtons[i]);
+			levelButtonsScoresPanel.add(bestScoresLabels[i]);
+		}
+		
+		//back Panel
+		JPanel backPanel = new JPanel();
+		backPanel.add(backButton);
+		
+		//south panel
+		JPanel southPanel = new JPanel();
+		southPanel.add(backPanel,BorderLayout.EAST);
+		
+		//adding all panels
+		add(profileName,BorderLayout.NORTH);
+		add(levelButtonsScoresPanel,BorderLayout.CENTER);
+		add(southPanel,BorderLayout.SOUTH);
 	}
 
 }

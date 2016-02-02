@@ -1,132 +1,178 @@
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
-import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 
+/**
+ * Reprezentuje œwiat gry
+ * 
+ * @author Mateusz Antoniak
+ */
 @SuppressWarnings("serial")
 public class World implements Runnable{
 	/**
-	 * Width of game's world in pixels
+	 * Szerokoœæ œwiata w pikselach
 	 */
 	public static final int WORLD_WIDTH = 800;
 	
 	/**
-	 * Height of game's world in pixels
+	 * Wysokoœæ œwiata w pikselach
 	 */
 	public static final int WORLD_HEIGHT = 600;
 	
 	/**
-	 * Size of tiles that world is divided into(in pixels)
+	 * Bazowa grawitacja œwiata
+	 */
+	public static final float BASE_GRAVITY = 1500.f;
+	
+	/**
+	 * Bazowy przelicznik czasu rozgrywki na punkty
+	 */
+	public static final float BASE_TIME_TO_POINTS = 10.f;
+	
+	/**
+	 * Rozmiar kafelka œwiata w pikselach
 	 */
 	public static final int TILE_SIZE = 40;
 	
 	/**
-	 * Number of parts that level has
+	 * Liczba czêœci, z których sk³ada siê poziom
 	 */
-	private static final int NUMBER_OF_LEVEL_PARTS = 5;
+	public static final int NUM_OF_LEVEL_PARTS = 5;
 	
 	/**
-	 * Value of pixel color that corresponds to the player
+	 * Identyfikator platformy w pliku definicj poziomu
 	 */
-	private static final int PLAYER_PIXEL_COLOR = 0xff00ff00;
+	private static final int PLATFORM_ID  = 1;
 	
 	/**
-	 * Value of pixel color that corresponds to the platform
+	 * Identyfikator bonusu w pliku definicj poziomu
 	 */
-	private static final int PLATFORM_PIXEL_COLOR = 0xffff0000;
+	private static final int BONUS_ID  = 2;
 	
 	/**
-	 * Value of pixel color that corresponds to the bonus
+	 * Identyfikator gracza w pliku definicj poziomu
 	 */
-	private static final int BONUS_PIXEL_COLOR = 0xffffff00;
+	private static final int PLAYER_ID = 3;
 	
 	/**
-	 * Time between next updates of the game
+	 * Czas pomiêdzy kolejnymi aktualizacjami stanu gry
 	 */
 	public static final long UPDATE_DELTA_TIME = 16;
 	
 	/**
-	 * Game panel
+	 * Referencja na stan gry
 	 */
-	Gameplay gamePanel_;
+	private Gameplay gamePanel_;
 	
 	/**
-	 * Player's character
+	 * Postaæ gracza
 	 */
 	private Player player_;
 	
 	/**
-	 * List of player spawn positions(in tiles)
+	 * Lista pocz¹tkowych pozycji gracza
 	 */
 	private int[][] playerSpawnPositions_;
 	
 	/**
-	 * List of platforms
+	 * Lista platform
 	 */
 	private ArrayList<ArrayList<Platform>> platforms_;
 	
 	/**
-	 * List of bonuses
+	 * Lista bonusów
 	 */
 	private ArrayList<ArrayList<Bonus>> bonuses_;
 	
 	/**
-	 * Number of lifes that player has left
+	 * Liczba pozosta³ych ¿yæ gracza
 	 */
 	private int playerLifes_;
 	
 	/**
-	 * Number of alive platforms
+	 * Liczba punktów, które gracz aktualnie posiada
+	 */
+	private int playerPoints_;
+	
+	/**
+	 * Liczba punktów, które gracz posiada na pocz¹tku ka¿dej czêœci poziomu
+	 */
+	private int playerResetPoints_;
+	
+	/**
+	 * Wspó³czynnik konwersji czasu rozgrywki na punkty
+	 */
+	private float timeToPointsFactor_;
+	
+	/**
+	 * Wspó³czynnik grawitacji
+	 */
+	private float worldGravityFactor_;
+	
+	/**
+	 * Liczba aktywnych platform
 	 */
 	private int alivePlatforms_;
 	
 	/**
-	 * Current part of level
+	 * Aktualna czêœæ poziomu
 	 */
 	private int currentPart_;
 	
 	/**
-	 * Indicates if game is paused
+	 * Stoper mier¿acy czas rozgrywki
+	 */
+	private double timer_;
+	
+	/**
+	 * Wskazuje, czy gra jest zatrzymana
 	 */
 	private boolean paused_;
 	
 	/**
-	 * Indicates if level is completed
+	 * Wskazuje, czy gracz ukoñczy³ poziom
 	 */
 	private boolean completed_;
-	
+
 	/**
+	 * Konstruuje nowy œwiat gry
 	 * 
-	 * @param game
-	 * @param levelName
+	 * @param game - Referencja na stan gry
+	 * @param id - Identyfikator poziomu
 	 */
-	public World(Gameplay game, String levelName){
+	public World(Gameplay game, int id){
 		Textures.readTextures();
 		gamePanel_ = game;
 		paused_ = true;
 		completed_ = false;
-		playerSpawnPositions_ = new int [NUMBER_OF_LEVEL_PARTS][2];
-		platforms_ = new ArrayList<>(NUMBER_OF_LEVEL_PARTS);
-		bonuses_ = new ArrayList<>(NUMBER_OF_LEVEL_PARTS);
-		playerLifes_ = Config.NUMBER_OF_PLAYER_LIFES;
-		readLevel(levelName);
+		playerSpawnPositions_ = new int [NUM_OF_LEVEL_PARTS][2];
+		platforms_ = new ArrayList<>(NUM_OF_LEVEL_PARTS);
+		bonuses_ = new ArrayList<>(NUM_OF_LEVEL_PARTS);
+		playerLifes_ = Config.NUM_OF_PLAYER_LIFES;
+		playerPoints_ = 0;
+		playerResetPoints_ = 0;
+		timer_ = 0;
+		readLevel(Config.getLevelName(id));
+		player_ = new Player(playerSpawnPositions_[0][0],playerSpawnPositions_[0][1],BASE_GRAVITY*worldGravityFactor_);
 		gamePanel_.updatePlatformsLabel(alivePlatforms_, platforms_.get(0).size());
 		gamePanel_.updatePlayerLifesLabel(playerLifes_);
 		setKeyBindings();
 	}
 
+	/**
+	 * Przypisuje klawisze do akcji
+	 */
 	private void setKeyBindings() {
 		InputMap input = gamePanel_.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 		ActionMap actions = gamePanel_.getActionMap();
@@ -139,6 +185,7 @@ public class World implements Runnable{
 		input.put(KeyStroke.getKeyStroke(KeyEvent.VK_D,0,true), "playerStopMovingRight");
 		input.put(KeyStroke.getKeyStroke(KeyEvent.VK_A,0,true), "playerStopMovingLeft");
 		input.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z,0), "playerJump");
+		input.put(KeyStroke.getKeyStroke(KeyEvent.VK_P,0), "pauseGame");
 		actions.put("playerMoveRight",new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
 				player_.startMovingRight();
@@ -164,29 +211,42 @@ public class World implements Runnable{
 				player_.jump();
 			}
 		});
+		actions.put("pauseGame", new AbstractAction() {
+			public void actionPerformed(ActionEvent arg0) {
+				gamePanel_.pauseGame();
+			}
+		});
 	}
 
+	/**
+	 * Wczytuje dane o poziomie
+	 * 
+	 * @param levelName - Nazwa pliku z danymi
+	 */
 	private void readLevel(String levelName) {
 		try {
-			BufferedImage levelImg = ImageIO.read(new File(Config.LEVELS_PATH+"/"+levelName+".png"));
-			int worldWidth = levelImg.getWidth();
-			int worldHeight = levelImg.getHeight()/NUMBER_OF_LEVEL_PARTS;
-			for(int levelPart = 0; levelPart < NUMBER_OF_LEVEL_PARTS; ++levelPart){
+			Scanner scanner = new Scanner(new File(Config.LEVELS_PATH+"/"+levelName+".txt"));
+			timeToPointsFactor_ = scanner.nextFloat();
+			worldGravityFactor_ = scanner.nextFloat();
+			int worldWidth = WORLD_WIDTH/TILE_SIZE;
+			int worldHeight = WORLD_HEIGHT/TILE_SIZE;
+			for(int levelPart = 0; levelPart < NUM_OF_LEVEL_PARTS; ++levelPart){
 				ArrayList<Platform> levelPartPlatforms = new ArrayList<Platform>();
 				ArrayList<Bonus> levelPartBonuses = new ArrayList<Bonus>();
-				for(int j = levelPart*worldHeight; j < (levelPart+1)*worldHeight; ++j){
+				for(int j = 0; j < worldHeight; ++j){
+					scanner.nextLine();
 					for(int i = 0; i < worldWidth; ++i){
-						int pixel = levelImg.getRGB(i,j);
-						switch(pixel){
-						case PLAYER_PIXEL_COLOR:
+						int id = scanner.nextInt();
+						switch(id){
+						case PLAYER_ID:
 							playerSpawnPositions_[levelPart][0] = i;
-							playerSpawnPositions_[levelPart][1] = j%worldHeight;
+							playerSpawnPositions_[levelPart][1] = j;
 							break;
-						case PLATFORM_PIXEL_COLOR:
-							levelPartPlatforms.add(new Platform(i,j%worldHeight));
+						case PLATFORM_ID:
+							levelPartPlatforms.add(new Platform(i,j));
 							break;
-						case BONUS_PIXEL_COLOR:
-							levelPartBonuses.add(new Bonus(i,j%worldHeight));
+						case BONUS_ID:
+							levelPartBonuses.add(new Bonus(i,j));
 							break;
 						}
 					}
@@ -195,12 +255,17 @@ public class World implements Runnable{
 				bonuses_.add(levelPartBonuses);
 			}
 			alivePlatforms_ = platforms_.get(0).size();
-			player_ = new Player(playerSpawnPositions_[0][0],playerSpawnPositions_[0][1],1500.f);
+			scanner.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
+	/**
+	 * Rysuje œwiat gry
+	 * 
+	 * @param g - Kontekst graficzny
+	 */
 	public void draw(Graphics g){
 		//Graphics2D g = worldBuffer_.createGraphics();
 		g.setColor(Color.CYAN);
@@ -214,28 +279,50 @@ public class World implements Runnable{
 		}
 	}
 	
+	/**
+	 * Zwraca true jeœli poziom zosta³ ukoñczony
+	 * 
+	 * @return True jeœli poziom zosta³ ukoñczony, false w przeciwnym wypdaku
+	 */
 	public boolean completed(){
 		return completed_;
 	}
 	
+	/**
+	 * Zwraca true jeœli rozgrywka jest zatrzymana
+	 * 
+	 * @return True jeœli rozgrywka jest zatrzymana, false w przeciwnym wypdaku
+	 */
 	public synchronized boolean paused(){
 		return paused_;
 	}
 	
+	/**
+	 * Zatrzymuje rozgrywkê
+	 */
 	public synchronized void pause(){
 		paused_ = true;
 	}
 	
+	/**
+	 * Wznawia rozgrywkê
+	 */
 	public synchronized void unpause(){
 		paused_ = false;
 		notifyAll();
 	}
 	
+	/**
+	 * Startuje w¹tek, w którym odbywa siê rozgrywka
+	 */
 	public void start(){
 		Thread t = new Thread(this);
 		t.start();
 	}
 	
+	/**
+	 * Utrzymuje watek œwiata gry w stanie uœpienia, gdy rozgrywka jest zatrzymana 
+	 */
 	private synchronized void waitIfPaused(){
 		try {
 			while(paused_)
@@ -246,7 +333,29 @@ public class World implements Runnable{
 	}
 	
 	/**
-	 * Handles player collisions with objects
+	 * Resetuje œwiat gry do stanu pocz¹tkowego
+	 */
+	public void reset(){
+		currentPart_ = 0;
+		player_.respawn(playerSpawnPositions_[currentPart_][0],playerSpawnPositions_[currentPart_][1]);
+		for(int i = 0; i < World.NUM_OF_LEVEL_PARTS; ++i){
+			for(Platform platform : platforms_.get(i))
+				platform.reset();
+			for(Bonus bonus : bonuses_.get(i))
+				bonus.reset();
+		}
+		alivePlatforms_ = platforms_.get(currentPart_).size();
+		playerLifes_ = Config.NUM_OF_PLAYER_LIFES;
+		playerResetPoints_ = 0;
+		playerPoints_ = 0;
+		timer_ = 0;
+		gamePanel_.updatePlayerLifesLabel(playerLifes_);
+		gamePanel_.updatePlatformsLabel(alivePlatforms_, alivePlatforms_);
+		gamePanel_.repaint();
+	}
+	
+	/**
+	 * Sprawdza kolizje gracza z innymi obiektami
 	 */
 	private void resolveCollisions(){
 		//checking collision with platforms
@@ -257,14 +366,13 @@ public class World implements Runnable{
 			if(player_.intersects(platform))
 				player_.onCollsionWithPlatform(platform);
 		}
-		//checking if player is standing on platform
-		//player_.checkForStanding(platforms_.get(currentPart_));
 		resolvePlatformsState();
+		
 		//checking collision with bonuses
 		for(Bonus bonus : bonuses_.get(currentPart_)){
 			if(!bonus.collected()){
 				if(player_.intersects(bonus)){
-//					score += Bonus.SCORE;
+					playerPoints_ += Bonus.SCORE;
 					bonus.collect();
 				}
 			}
@@ -274,8 +382,11 @@ public class World implements Runnable{
 			player_.respawn(playerSpawnPositions_[currentPart_][0],playerSpawnPositions_[currentPart_][1]);
 			for(Platform platform : platforms_.get(currentPart_))
 				platform.reset();
+			for(Bonus bonus : bonuses_.get(currentPart_))
+				bonus.reset();
 			alivePlatforms_ = platforms_.get(currentPart_).size();
 			--playerLifes_;
+			playerPoints_ = playerResetPoints_;
 			gamePanel_.updatePlayerLifesLabel(playerLifes_);
 			gamePanel_.updatePlatformsLabel(alivePlatforms_, alivePlatforms_);
 		}
@@ -286,7 +397,7 @@ public class World implements Runnable{
 	}
 	
 	/**
-	 * Changes platforms state
+	 * Ustawia nowe stany platform
 	 */
 	private void resolvePlatformsState(){
 		//temporarily set player falling state to true
@@ -302,7 +413,7 @@ public class World implements Runnable{
 			}
 			//else if player is not standing on platform
 			else{
-				//if player was standing on this platform, destroy it 
+				//and if player was standing on this platform, destroy it 
 				if(platform.steppedOn()){
 					platform.destroy();
 					--alivePlatforms_;
@@ -312,6 +423,20 @@ public class World implements Runnable{
 		}
 	}
 	
+	/**
+	 * Oblicza iloœæ punktów zdobyt¹ przez gracza
+	 * 
+	 * @return Iloœæ punktów zdobyt¹ przez gracza
+	 */
+	public int calculatePlayerPoints(){
+		playerPoints_ += 100*playerLifes_;
+		playerPoints_ -= (int)(timeToPointsFactor_*BASE_TIME_TO_POINTS*timer_/1000.f);
+		return playerPoints_;
+	}
+	
+	/**
+	 * G³ówna pêtla gry
+	 */
 	public void run() {
 		while(!completed_){
 			waitIfPaused();
@@ -325,22 +450,25 @@ public class World implements Runnable{
 				player_.move();
 				resolveCollisions();
 				if(alivePlatforms_==0){
-					if(++currentPart_ == NUMBER_OF_LEVEL_PARTS){
+					if(++currentPart_ == NUM_OF_LEVEL_PARTS){
 						--currentPart_;
 						completed_ = true;
-						gamePanel_.onLevelComplete();
+						gamePanel_.onLevelComplete(timer_,calculatePlayerPoints());
 					}
 					else{
+						playerResetPoints_ = playerPoints_;
 						alivePlatforms_ = platforms_.get(currentPart_).size();
 						gamePanel_.updatePlatformsLabel(alivePlatforms_, alivePlatforms_);
 						player_.respawn(playerSpawnPositions_[currentPart_][0], playerSpawnPositions_[currentPart_][1]);
+						gamePanel_.updatePartLabel(currentPart_+1);
 					}
 				}
 				else if(playerLifes_ == 0){
-					completed_ = true;
+					paused_ = true;
 					gamePanel_.onPlayerDeath();
 				}
-				//repaintWorld();
+				timer_ += UPDATE_DELTA_TIME;
+				gamePanel_.updateTimer(timer_);
 				gamePanel_.repaint();
 			}
 		}
